@@ -25,7 +25,7 @@ function createBuilding(x, z) {
     const height = Math.random() * 15 + 5;
     const geometry = new THREE.BoxGeometry(4, height, 4);
     const material = new THREE.MeshPhongMaterial({
-        color: 0x007bff,
+        color: 0xffffff,
         transparent: true,
         opacity: 0.8
     });
@@ -39,6 +39,22 @@ for (let i = 0; i < 20; i++) {
     const x = (Math.random() - 0.5) * 100;
     const z = (Math.random() - 0.5) * 100;
     const building = createBuilding(x, z);
+    scene.add(building);
+}
+
+// Add a few gold accent buildings
+for (let i = 0; i < 5; i++) {
+    const x = (Math.random() - 0.5) * 100;
+    const z = (Math.random() - 0.5) * 100;
+    const height = Math.random() * 20 + 10;
+    const geometry = new THREE.BoxGeometry(4, height, 4);
+    const material = new THREE.MeshPhongMaterial({
+        color: 0xF6D984,
+        transparent: true,
+        opacity: 0.9
+    });
+    const building = new THREE.Mesh(geometry, material);
+    building.position.set(x, height / 2, z);
     scene.add(building);
 }
 
@@ -72,8 +88,8 @@ async function fetchProperties(filters = {}) {
             grant_type: 'password',
             client_id: '3MVG9HxRZv05HarSVQTVEemG9FwGRw.kvwiYNqCNOgazF2lMc7rQx5gt.aiMZWn5Wd5F_eN.3wPHYtStIp5ib',
             client_secret: 'CE2F1A590D250CADCF6738B9B5DCC3CACBEE427FC4FF9F270DB8F289E9BFD55D',
-            username: '{YourSalesforceUsername}',
-            password: '{YourPassword}{SecurityToken}'
+            username: 'mina.real@gmail.com',
+            password: 'salesforce@123'
         });
 
         // First, get the access token
@@ -174,18 +190,39 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
 
     // Here you would typically send this to your backend
     console.log('Contact form submitted:', formData);
-    alert('Thank you for your message! We will get back to you soon.');
+    showSuccess('Thank you for your message! We will get back to you soon.');
     e.target.reset();
 });
 
 // Error handling
 function showError(message) {
     const toast = document.createElement('div');
-    toast.className = 'toast align-items-center text-white bg-danger border-0 position-fixed bottom-0 end-0 m-3';
+    toast.className = 'toast align-items-center text-white border-0 position-fixed bottom-0 end-0 m-3';
     toast.setAttribute('role', 'alert');
     toast.innerHTML = `
         <div class="d-flex">
             <div class="toast-body">${message}</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+    const bsToast = new bootstrap.Toast(toast);
+    bsToast.show();
+    
+    // Remove toast after it's hidden
+    toast.addEventListener('hidden.bs.toast', () => {
+        toast.remove();
+    });
+}
+
+// Success message
+function showSuccess(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast align-items-center text-white border-0 position-fixed bottom-0 end-0 m-3';
+    toast.setAttribute('role', 'alert');
+    toast.innerHTML = `
+        <div class="d-flex">
+            <div class="toast-body" style="color: var(--accent-color);">${message}</div>
             <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
         </div>
     `;
