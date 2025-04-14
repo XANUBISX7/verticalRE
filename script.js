@@ -84,21 +84,23 @@ window.addEventListener('resize', () => {
 // Salesforce Authentication
 async function authenticateSalesforce() {
     try {
-        const response = await fetch('http://localhost:3000/api/auth', {
+        const response = await fetch('https://login.salesforce.com/services/oauth2/token', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
-            body: JSON.stringify({
-                username: 'your_username',
-                password: 'your_password',
-                client_id: 'your_client_id',
-                client_secret: 'your_client_secret'
+            body: new URLSearchParams({
+                grant_type: 'password',
+                client_id: 'YOUR_CLIENT_ID', // Replace with your Salesforce client ID
+                client_secret: 'YOUR_CLIENT_SECRET', // Replace with your Salesforce client secret
+                username: 'YOUR_USERNAME', // Replace with your Salesforce username
+                password: 'YOUR_PASSWORD' // Replace with your Salesforce password
             })
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await response.json();
+            throw new Error(error.error_description || 'Authentication failed');
         }
 
         const data = await response.json();
@@ -112,20 +114,18 @@ async function authenticateSalesforce() {
 // Fetch Property Data from Salesforce
 async function fetchPropertyData(instanceUrl, accessToken) {
     try {
-        const response = await fetch('http://localhost:3000/api/query', {
-            method: 'POST',
+        const query = encodeURIComponent('SELECT Id, Name, Price__c, Square_Footage__c, Bedrooms__c, Bathrooms__c, Address__c, City__c FROM Property__c');
+        const response = await fetch(`${instanceUrl}/services/data/v57.0/query?q=${query}`, {
+            method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                instance_url: instanceUrl,
-                access_token: accessToken,
-                query: 'SELECT Id, Name, Price__c, Square_Footage__c, Bedrooms__c, Bathrooms__c, Address__c FROM Property__c'
-            })
+                'Authorization': `Bearer ${accessToken}`,
+                'Content-Type': 'application/json'
+            }
         });
 
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to fetch properties');
         }
 
         const data = await response.json();
@@ -221,23 +221,11 @@ document.getElementById('contactForm').addEventListener('submit', async (e) => {
 
 // Error handling
 function showError(message) {
-    const toast = document.createElement('div');
-    toast.className = 'toast align-items-center text-white border-0 position-fixed bottom-0 end-0 m-3';
-    toast.setAttribute('role', 'alert');
-    toast.innerHTML = `
-        <div class="d-flex">
-            <div class="toast-body">${message}</div>
-            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
-        </div>
-    `;
-    document.body.appendChild(toast);
-    const bsToast = new bootstrap.Toast(toast);
-    bsToast.show();
-    
-    // Remove toast after it's hidden
-    toast.addEventListener('hidden.bs.toast', () => {
-        toast.remove();
-    });
+    const errorDiv = document.createElement('div');
+    errorDiv.className = 'error-message';
+    errorDiv.textContent = message;
+    document.body.appendChild(errorDiv);
+    setTimeout(() => errorDiv.remove(), 5000);
 }
 
 // Success message
