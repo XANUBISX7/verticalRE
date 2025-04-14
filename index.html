@@ -98,6 +98,7 @@
           });
         } catch (err) {
           console.error("Failed to fetch properties", err);
+  showErrorToast("Salesforce Error: " + (err.message || JSON.stringify(err)));
         }
       }
 
@@ -146,5 +147,27 @@
         alert('Smooth scroll to lead form will go here.');
       };
     </script>
-  </body>
+  
+<!-- Error Toast -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="errorToast" class="toast align-items-center text-white bg-danger border-0 animate__animated animate__fadeInUp" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="d-flex">
+      <div class="toast-body" id="toastMessage">
+        <!-- Error message will appear here -->
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function showErrorToast(message) {
+    document.getElementById('toastMessage').innerText = message;
+    const toastEl = document.getElementById('errorToast');
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+  }
+</script>
+
+</body>
 </html>
