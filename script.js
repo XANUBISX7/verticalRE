@@ -84,54 +84,25 @@ window.addEventListener('resize', () => {
 // Salesforce Authentication
 async function authenticateSalesforce() {
     try {
-        // Check if we have a stored auth code from the callback
-        const authCode = sessionStorage.getItem('sf_auth_code');
-        
-        if (authCode) {
-            // Clear the stored code
-            sessionStorage.removeItem('sf_auth_code');
-            
-            // Exchange the code for an access token
-            const response = await fetch('https://login.salesforce.com/services/oauth2/token', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    grant_type: 'authorization_code',
-                    code: authCode,
-                    client_id: 'YOUR_CLIENT_ID', // Replace with your Salesforce client ID
-                    client_secret: 'YOUR_CLIENT_SECRET', // Replace with your Salesforce client secret
-                    redirect_uri: 'https://cloudastickre.netlify.app/callback.html'
-                })
-            });
-
-            if (!response.ok) {
-                const error = await response.json();
-                throw new Error(error.error_description || 'Token exchange failed');
+        const response = await fetch('http://localhost:3000/api/auth', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             }
+        });
 
-            const data = await response.json();
-            // Store the tokens in sessionStorage
-            sessionStorage.setItem('sf_access_token', data.access_token);
-            sessionStorage.setItem('sf_instance_url', data.instance_url);
-            return data;
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.error_description || 'Authentication failed');
         }
+
+        const data = await response.json();
         
-        // Check if we have stored tokens
-        const accessToken = sessionStorage.getItem('sf_access_token');
-        const instanceUrl = sessionStorage.getItem('sf_instance_url');
+        // Store the tokens in sessionStorage
+        sessionStorage.setItem('sf_access_token', data.access_token);
+        sessionStorage.setItem('sf_instance_url', data.instance_url);
         
-        if (accessToken && instanceUrl) {
-            return {
-                access_token: accessToken,
-                instance_url: instanceUrl
-            };
-        }
-        
-        // If no stored tokens or auth code, initiate OAuth flow
-        window.location.href = `https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=https://cloudastickre.netlify.app/callback.html`;
-        return null;
+        return data;
     } catch (error) {
         console.error('Error authenticating with Salesforce:', error);
         throw error;
@@ -141,13 +112,17 @@ async function authenticateSalesforce() {
 // Fetch Property Data from Salesforce
 async function fetchPropertyData(instanceUrl, accessToken) {
     try {
-        const query = encodeURIComponent('SELECT Id, Name, Price__c, Square_Footage__c, Bedrooms__c, Bathrooms__c, Address__c, City__c FROM Property__c');
-        const response = await fetch(`${instanceUrl}/services/data/v57.0/query?q=${query}`, {
-            method: 'GET',
+        const query = 'SELECT Id, Name, Price__c, Square_Footage__c, Bedrooms__c, Bathrooms__c, Address__c, City__c FROM Property__c';
+        const response = await fetch('http://localhost:3000/api/query', {
+            method: 'POST',
             headers: {
-                'Authorization': `Bearer ${accessToken}`,
                 'Content-Type': 'application/json'
-            }
+            },
+            body: JSON.stringify({
+                instance_url: instanceUrl,
+                access_token: accessToken,
+                query: query
+            })
         });
 
         if (!response.ok) {

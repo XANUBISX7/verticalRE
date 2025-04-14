@@ -1,22 +1,28 @@
 const express = require('express');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 const fetch = require('node-fetch');
+const bodyParser = require('body-parser');
 const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Salesforce credentials
+const SF_CREDENTIALS = {
+    client_id: '3MVG9HxRZv05HarSVQTVEemG9FwGRw.kvwiYNqCNOgazF2lMc7rQx5gt.aiMZWn5Wd5F_eN.3wPHYtStIp5ib',
+    client_secret: 'CE2F1A590D250CADCF6738B9B5DCC3CACBEE427FC4FF9F270DB8F289E9BFD55D',
+    username: 'mina.real@gmail.com',
+    password: 'salesforce@123'
+};
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '.'))); // Serve static files from current directory
+app.use(express.static(path.join(__dirname, '.')));
 
 // Salesforce Authentication endpoint
 app.post('/api/auth', async (req, res) => {
     try {
-        const { username, password, client_id, client_secret } = req.body;
-        
         const response = await fetch('https://login.salesforce.com/services/oauth2/token', {
             method: 'POST',
             headers: {
@@ -24,22 +30,26 @@ app.post('/api/auth', async (req, res) => {
             },
             body: new URLSearchParams({
                 grant_type: 'password',
-                client_id,
-                client_secret,
-                username,
-                password
+                client_id: SF_CREDENTIALS.client_id,
+                client_secret: SF_CREDENTIALS.client_secret,
+                username: SF_CREDENTIALS.username,
+                password: SF_CREDENTIALS.password
             })
         });
 
         const data = await response.json();
         
-        if (data.error) {
-            return res.status(400).json({ error: data.error_description });
+        if (!response.ok) {
+            console.error('Salesforce auth error:', data);
+            return res.status(response.status).json({
+                error: data.error,
+                error_description: data.error_description
+            });
         }
-        
+
         res.json(data);
     } catch (error) {
-        console.error('Authentication error:', error);
+        console.error('Server auth error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -51,19 +61,24 @@ app.post('/api/query', async (req, res) => {
         
         const response = await fetch(`${instance_url}/services/data/v57.0/query?q=${encodeURIComponent(query)}`, {
             headers: {
-                'Authorization': `Bearer ${access_token}`
+                'Authorization': `Bearer ${access_token}`,
+                'Content-Type': 'application/json'
             }
         });
 
         const data = await response.json();
         
-        if (data.error) {
-            return res.status(400).json({ error: data.error_description });
+        if (!response.ok) {
+            console.error('Salesforce query error:', data);
+            return res.status(response.status).json({
+                error: data[0]?.errorCode,
+                message: data[0]?.message
+            });
         }
-        
+
         res.json(data);
     } catch (error) {
-        console.error('Query error:', error);
+        console.error('Server query error:', error);
         res.status(500).json({ error: 'Internal server error' });
     }
 });
@@ -74,5 +89,5 @@ app.get('*', (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server running on http://localhost:${PORT}`);
 }); 
