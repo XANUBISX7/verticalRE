@@ -84,27 +84,54 @@ window.addEventListener('resize', () => {
 // Salesforce Authentication
 async function authenticateSalesforce() {
     try {
-        const response = await fetch('https://login.salesforce.com/services/oauth2/token', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({
-                grant_type: 'password',
-                client_id: 'YOUR_CLIENT_ID', // Replace with your Salesforce client ID
-                client_secret: 'YOUR_CLIENT_SECRET', // Replace with your Salesforce client secret
-                username: 'YOUR_USERNAME', // Replace with your Salesforce username
-                password: 'YOUR_PASSWORD' // Replace with your Salesforce password
-            })
-        });
+        // Check if we have a stored auth code from the callback
+        const authCode = sessionStorage.getItem('sf_auth_code');
+        
+        if (authCode) {
+            // Clear the stored code
+            sessionStorage.removeItem('sf_auth_code');
+            
+            // Exchange the code for an access token
+            const response = await fetch('https://login.salesforce.com/services/oauth2/token', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    grant_type: 'authorization_code',
+                    code: authCode,
+                    client_id: 'YOUR_CLIENT_ID', // Replace with your Salesforce client ID
+                    client_secret: 'YOUR_CLIENT_SECRET', // Replace with your Salesforce client secret
+                    redirect_uri: 'https://cloudastickre.netlify.app/callback.html'
+                })
+            });
 
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error_description || 'Authentication failed');
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error_description || 'Token exchange failed');
+            }
+
+            const data = await response.json();
+            // Store the tokens in sessionStorage
+            sessionStorage.setItem('sf_access_token', data.access_token);
+            sessionStorage.setItem('sf_instance_url', data.instance_url);
+            return data;
         }
-
-        const data = await response.json();
-        return data;
+        
+        // Check if we have stored tokens
+        const accessToken = sessionStorage.getItem('sf_access_token');
+        const instanceUrl = sessionStorage.getItem('sf_instance_url');
+        
+        if (accessToken && instanceUrl) {
+            return {
+                access_token: accessToken,
+                instance_url: instanceUrl
+            };
+        }
+        
+        // If no stored tokens or auth code, initiate OAuth flow
+        window.location.href = `https://login.salesforce.com/services/oauth2/authorize?response_type=code&client_id=YOUR_CLIENT_ID&redirect_uri=https://cloudastickre.netlify.app/callback.html`;
+        return null;
     } catch (error) {
         console.error('Error authenticating with Salesforce:', error);
         throw error;
