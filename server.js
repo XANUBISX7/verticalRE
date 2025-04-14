@@ -16,13 +16,23 @@ const SF_CREDENTIALS = {
 };
 
 // Middleware
-app.use(cors());
+app.use(cors({
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'null'],
+    methods: ['GET', 'POST'],
+    credentials: true
+}));
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, '.')));
+app.use(express.static(path.join(__dirname)));
+
+// Health check endpoint
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
 
 // Salesforce Authentication endpoint
 app.post('/api/auth', async (req, res) => {
     try {
+        console.log('Attempting Salesforce authentication...');
         const response = await fetch('https://login.salesforce.com/services/oauth2/token', {
             method: 'POST',
             headers: {
@@ -47,6 +57,7 @@ app.post('/api/auth', async (req, res) => {
             });
         }
 
+        console.log('Authentication successful');
         res.json(data);
     } catch (error) {
         console.error('Server auth error:', error);
@@ -59,6 +70,11 @@ app.post('/api/query', async (req, res) => {
     try {
         const { instance_url, access_token, query } = req.body;
         
+        if (!instance_url || !access_token || !query) {
+            return res.status(400).json({ error: 'Missing required parameters' });
+        }
+
+        console.log('Executing Salesforce query:', query);
         const response = await fetch(`${instance_url}/services/data/v57.0/query?q=${encodeURIComponent(query)}`, {
             headers: {
                 'Authorization': `Bearer ${access_token}`,
@@ -76,6 +92,7 @@ app.post('/api/query', async (req, res) => {
             });
         }
 
+        console.log('Query successful, returning results');
         res.json(data);
     } catch (error) {
         console.error('Server query error:', error);
@@ -88,6 +105,11 @@ app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
+// Start server
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
+    console.log('Available endpoints:');
+    console.log('  - GET  /health');
+    console.log('  - POST /api/auth');
+    console.log('  - POST /api/query');
 }); 

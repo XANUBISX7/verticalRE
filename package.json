@@ -1,7 +1,7 @@
 {
   "name": "verticalre-proxy",
   "version": "1.0.0",
-  "description": "Proxy server for Salesforce authentication and data fetching",
+  "description": "Real Estate Application with Salesforce Integration",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
