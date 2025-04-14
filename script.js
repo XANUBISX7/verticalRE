@@ -81,54 +81,58 @@ window.addEventListener('resize', () => {
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
 
-// Salesforce Integration
-async function fetchProperties(filters = {}) {
+// Salesforce Authentication
+async function authenticateSalesforce() {
     try {
-        const queryParams = new URLSearchParams({
-            grant_type: 'password',
-            client_id: '3MVG9HxRZv05HarSVQTVEemG9FwGRw.kvwiYNqCNOgazF2lMc7rQx5gt.aiMZWn5Wd5F_eN.3wPHYtStIp5ib',
-            client_secret: 'CE2F1A590D250CADCF6738B9B5DCC3CACBEE427FC4FF9F270DB8F289E9BFD55D',
-            username: 'mina.real@gmail.com',
-            password: 'salesforce@123'
-        });
-
-        // First, get the access token
-        const authResponse = await fetch('https://login.salesforce.com/services/oauth2/token', {
+        const response = await fetch('http://localhost:3000/api/auth', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/json',
             },
-            body: queryParams
+            body: JSON.stringify({
+                username: 'your_username',
+                password: 'your_password',
+                client_id: 'your_client_id',
+                client_secret: 'your_client_secret'
+            })
         });
 
-        const authData = await authResponse.json();
-        
-        // Then, query the properties
-        const propertyQuery = `
-            SELECT Id, Name, City__c, Address__c, Beds__c, Baths__c, Price__c, Tags__c, Picture__c, Record_Link__c
-            FROM Property__c
-            WHERE Price__c >= ${filters.minPrice || 0}
-            AND Price__c <= ${filters.maxPrice || 1000000}
-            AND Beds__c >= ${filters.minBeds || 0}
-            AND Baths__c >= ${filters.minBaths || 0}
-            ${filters.city ? `AND City__c LIKE '%${filters.city}%'` : ''}
-            ${filters.tag ? `AND Tags__c LIKE '%${filters.tag}%'` : ''}
-            LIMIT ${filters.limit || 10}
-            OFFSET ${(filters.page - 1) * (filters.limit || 10)}
-        `;
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
 
-        const propertyResponse = await fetch(`${authData.instance_url}/services/data/v59.0/query?q=${encodeURIComponent(propertyQuery)}`, {
-            headers: {
-                'Authorization': `Bearer ${authData.access_token}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const propertyData = await propertyResponse.json();
-        return propertyData.records;
+        const data = await response.json();
+        return data;
     } catch (error) {
-        console.error('Error fetching properties:', error);
-        showError('Failed to fetch properties. Please try again later.');
+        console.error('Error authenticating with Salesforce:', error);
+        throw error;
+    }
+}
+
+// Fetch Property Data from Salesforce
+async function fetchPropertyData(instanceUrl, accessToken) {
+    try {
+        const response = await fetch('http://localhost:3000/api/query', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                instance_url: instanceUrl,
+                access_token: accessToken,
+                query: 'SELECT Id, Name, Price__c, Square_Footage__c, Bedrooms__c, Bathrooms__c, Address__c FROM Property__c'
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Error fetching property data:', error);
+        throw error;
     }
 }
 
@@ -136,6 +140,16 @@ async function fetchProperties(filters = {}) {
 function displayProperties(properties) {
     const grid = document.getElementById('propertiesGrid');
     grid.innerHTML = '';
+
+    if (!properties || properties.length === 0) {
+        grid.innerHTML = `
+            <div class="col-12 text-center">
+                <p class="lead">No properties found matching your criteria.</p>
+                <p>Try adjusting your search filters.</p>
+            </div>
+        `;
+        return;
+    }
 
     properties.forEach(property => {
         const card = document.createElement('div');
@@ -170,6 +184,17 @@ document.getElementById('propertySearchForm').addEventListener('submit', async (
         page: 1,
         limit: 9
     };
+
+    // Show loading state
+    const grid = document.getElementById('propertiesGrid');
+    grid.innerHTML = `
+        <div class="col-12 text-center">
+            <div class="spinner-border text-light" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3">Loading properties...</p>
+        </div>
+    `;
 
     const properties = await fetchProperties(filters);
     if (properties) {
@@ -234,6 +259,45 @@ function showSuccess(message) {
     toast.addEventListener('hidden.bs.toast', () => {
         toast.remove();
     });
+}
+
+// Fetch properties from Salesforce
+async function fetchProperties(filters = {}) {
+    try {
+        // First authenticate with Salesforce
+        const authData = await authenticateSalesforce();
+        
+        // Then fetch the property data
+        const propertyData = await fetchPropertyData(authData.instance_url, authData.access_token);
+        
+        // Filter the properties based on the provided filters
+        let filteredProperties = propertyData.records;
+        
+        if (filters.minPrice) {
+            filteredProperties = filteredProperties.filter(p => p.Price__c >= filters.minPrice);
+        }
+        if (filters.city) {
+            filteredProperties = filteredProperties.filter(p => 
+                p.City__c.toLowerCase().includes(filters.city.toLowerCase())
+            );
+        }
+        if (filters.minBeds) {
+            filteredProperties = filteredProperties.filter(p => p.Beds__c >= filters.minBeds);
+        }
+        if (filters.minBaths) {
+            filteredProperties = filteredProperties.filter(p => p.Baths__c >= filters.minBaths);
+        }
+        
+        // Apply pagination
+        const startIndex = (filters.page - 1) * filters.limit;
+        const endIndex = startIndex + filters.limit;
+        return filteredProperties.slice(startIndex, endIndex);
+        
+    } catch (error) {
+        console.error('Error fetching properties:', error);
+        showError('Failed to fetch properties. Please try again later.');
+        return null;
+    }
 }
 
 // Initial property load
