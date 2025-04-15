@@ -3,15 +3,452 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cloudastick Real Estate SaaS</title>
+    <title>VerticalRE - Salesforce-Powered Real Estate Solutions</title>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Century+Gothic:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
     <!-- Custom CSS -->
     <link href="styles.css" rel="stylesheet">
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --accent-color: #F6D984;
+            --text-color: #333;
+            --light-bg: #f8f9fa;
+        }
+        
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-color);
+            overflow-x: hidden;
+        }
+        
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), #1a1a1a);
+            overflow: hidden;
+        }
+        
+        .hero-section canvas {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 50%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: left;
+            padding: 0 20px;
+            max-width: 600px;
+        }
+        
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(45deg, var(--accent-color), #fff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background: var(--accent-color);
+            color: var(--primary-color);
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: none;
+            font-size: 1.1rem;
+        }
+        
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(246, 217, 132, 0.3);
+            color: var(--primary-color);
+        }
+        
+        .features-section {
+            padding: 100px 0;
+            background: var(--light-bg);
+        }
+        
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 50px;
+            text-align: center;
+        }
+        
+        .testimonial-section {
+            padding: 100px 0;
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .testimonial-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+        }
+        
+        .contact-section {
+            padding: 100px 0;
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .search-form {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .search-header {
+            margin-bottom: 20px;
+        }
+        
+        .salesforce-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .salesforce-badge img {
+            height: 20px;
+            width: auto;
+        }
+        
+        .salesforce-badge span {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .search-fields {
+            margin-bottom: 20px;
+        }
+        
+        .search-field {
+            position: relative;
+            margin-bottom: 15px;
+        }
+        
+        .search-field .material-icons {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .search-field textarea.form-control {
+            padding-top: 15px;
+            min-height: 120px;
+        }
+        
+        .search-field .form-control {
+            padding-left: 45px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            height: 50px;
+        }
+        
+        .search-field .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .search-field .form-control:focus {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 0.2rem rgba(246, 217, 132, 0.25);
+        }
+        
+        .search-footer {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .search-stats {
+            display: flex;
+            justify-content: space-between;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.9rem;
+        }
+        
+        .search-stats span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .search-stats .material-icons {
+            font-size: 16px;
+        }
+        
+        .btn-primary {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: var(--accent-color);
+            border: none;
+            color: var(--primary-color);
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background: #f0c96b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(246, 217, 132, 0.3);
+        }
+        
+        .btn-primary .material-icons {
+            font-size: 20px;
+        }
+
+        .building-details-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            transform: scale(0.8);
+            animation: modalAppear 0.5s forwards;
+        }
+
+        .building-details-modal.closing {
+            animation: modalDisappear 0.5s forwards;
+        }
+
+        .building-details-modal .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform-origin: center;
+            animation: contentUnfold 0.5s forwards;
+            position: relative;
+        }
+
+        .building-details-modal.closing .modal-content {
+            animation: contentFold 0.5s forwards;
+        }
+
+        .building-details-modal h3 {
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .building-details-modal .unit-details {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .building-details-modal .unit-detail {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--light-bg);
+            border-radius: 8px;
+            transition: transform 0.3s ease;
+        }
+
+        .building-details-modal .unit-detail:hover {
+            transform: translateX(5px);
+        }
+
+        .building-details-modal .material-icons {
+            color: var(--accent-color);
+            font-size: 20px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--primary-color);
+            padding: 5px;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .modal-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            transform: rotate(90deg);
+        }
+
+        .modal-close .material-icons {
+            font-size: 24px;
+        }
+
+        @keyframes modalAppear {
+            from {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes modalDisappear {
+            from {
+                opacity: 1;
+                transform: scale(1);
+            }
+            to {
+                opacity: 0;
+                transform: scale(0.8);
+            }
+        }
+
+        @keyframes contentUnfold {
+            from {
+                transform: scale(0.5) rotate(-5deg);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes contentFold {
+            from {
+                transform: scale(1) rotate(0);
+                opacity: 1;
+            }
+            to {
+                transform: scale(0.5) rotate(5deg);
+                opacity: 0;
+            }
+        }
+
+        .search-section {
+            padding: 100px 0;
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .search-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .search-tab {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .search-tab.active {
+            background: var(--accent-color);
+            color: var(--primary-color);
+            border-color: var(--accent-color);
+        }
+
+        .scene-container {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+            .hero-section canvas {
+                width: 100%;
+                height: 50%;
+                top: auto;
+                bottom: 0;
+            }
+
+            .hero-content {
+                text-align: center;
+                padding: 40px 20px;
+            }
+
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
   </head>
   <body>
     <!-- Navigation -->
@@ -37,124 +474,221 @@
       </div>
     </nav>
 
-    <!-- Hero Section with Three.js Canvas -->
-    <section id="hero" class="position-relative">
+    <!-- Hero Section -->
+    <section class="hero-section">
       <canvas id="heroCanvas"></canvas>
-      <div class="container position-relative">
-        <div class="row min-vh-100 align-items-center">
-          <div class="col-lg-6">
-            <h1 class="display-4 fw-bold">Find Your Dream Home</h1>
-            <p class="lead">Powered by Salesforce - The Ultimate Real Estate Solution</p>
-            <button class="btn btn-primary btn-lg">Explore Properties</button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Property Search Form -->
-    <section id="search" class="py-5">
       <div class="container">
-        <div class="row justify-content-center">
-          <div class="col-lg-8">
-            <form id="propertySearchForm" class="p-4 rounded">
-              <div class="row g-3">
+            <div class="row align-items-center">
                 <div class="col-md-6">
-                  <label for="budget" class="form-label">Budget</label>
-                  <input type="range" class="form-range" id="budget" min="100000" max="1000000" step="10000">
-                  <div class="d-flex justify-content-between">
-                    <span>$100,000</span>
-                    <span>$1,000,000</span>
+                    <div class="hero-content">
+                        <h1 class="hero-title">Empower Your Real Estate Business with Salesforce</h1>
+                        <p class="hero-subtitle">Transform your real estate operations with our Salesforce-powered solutions. Streamline property management, enhance client relationships, and drive growth with cutting-edge technology.</p>
+                        <a href="#contact" class="cta-button">Get Started</a>
                   </div>
                 </div>
                 <div class="col-md-6">
-                  <label for="location" class="form-label">Location</label>
-                  <input type="text" class="form-control" id="location" placeholder="Enter city">
+                    <div class="scene-container">
+                        <!-- Three.js scene will be rendered here -->
+                    </div>
                 </div>
-                <div class="col-md-6">
-                  <label for="beds" class="form-label">Bedrooms</label>
-                  <select class="form-select" id="beds">
-                    <option value="1">1+</option>
-                    <option value="2">2+</option>
-                    <option value="3">3+</option>
-                    <option value="4">4+</option>
-                  </select>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title">Why Choose Our Salesforce Solutions?</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Streamlined Operations</h3>
+                        <p>Automate property management, lead tracking, and deal processing with our integrated Salesforce solutions.</p>
+                    </div>
                 </div>
-                <div class="col-md-6">
-                  <label for="baths" class="form-label">Bathrooms</label>
-                  <select class="form-select" id="baths">
-                    <option value="1">1+</option>
-                    <option value="2">2+</option>
-                    <option value="3">3+</option>
-                  </select>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">🤝</div>
+                        <h3>Enhanced Client Relationships</h3>
+                        <p>Build stronger connections with clients through personalized communication and efficient service delivery.</p>
+                    </div>
                 </div>
-                <div class="col-12">
-                  <button type="submit" class="btn btn-primary w-100">Search Properties</button>
-                </div>
-              </div>
-            </form>
+                <div class="col-md-4">
+                    <div class="feature-card">
+                        <div class="feature-icon">📈</div>
+                        <h3>Data-Driven Insights</h3>
+                        <p>Make informed decisions with real-time analytics and comprehensive reporting tools.</p>
+                    </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Properties Grid -->
-    <section id="properties" class="py-5">
+    <!-- Search Section -->
+    <section id="propertySearchForm" class="search-section">
       <div class="container">
-        <h2 class="text-center mb-5">Featured Properties</h2>
-        <div class="row g-4" id="propertiesGrid">
-          <!-- Property cards will be dynamically inserted here -->
-        </div>
+            <h2 class="section-title">Find Your Property</h2>
+            <div class="row justify-content-center">
+                <div class="col-md-8">
+                    <form id="propertySearchForm" class="search-form">
+                        <div class="search-header">
+                            <div class="search-tabs">
+                                <button type="button" class="search-tab active" data-type="buy">
+                                    <i class="material-icons">home</i>
+                                    <span>Buy</span>
+                                </button>
+                                <button type="button" class="search-tab" data-type="rent">
+                                    <i class="material-icons">apartment</i>
+                                    <span>Rent</span>
+                                </button>
+                                <button type="button" class="search-tab" data-type="commercial">
+                                    <i class="material-icons">business</i>
+                                    <span>Commercial</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="search-fields">
+                            <div class="search-field">
+                                <i class="material-icons">search</i>
+                                <input type="text" class="form-control" id="location" placeholder="Search by city, neighborhood, or address">
+                            </div>
+                            <div class="search-field">
+                                <i class="material-icons">attach_money</i>
+                                <div class="price-range">
+                                    <input type="range" class="form-range" id="priceRange" min="0" max="2000000" step="100000">
+                                    <div class="price-labels">
+                                        <span>$0</span>
+                                        <span id="currentPrice">$1,000,000</span>
+                                        <span>$2M+</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="search-field">
+                                <i class="material-icons">king_bed</i>
+                                <div class="bed-bath-selector">
+                                    <select class="form-select" id="beds">
+                                        <option value="">Any Beds</option>
+                                        <option value="1">1+ Beds</option>
+                                        <option value="2">2+ Beds</option>
+                                        <option value="3">3+ Beds</option>
+                                        <option value="4">4+ Beds</option>
+                                        <option value="5">5+ Beds</option>
+                                    </select>
+                                    <select class="form-select" id="baths">
+                                        <option value="">Any Baths</option>
+                                        <option value="1">1+ Baths</option>
+                                        <option value="2">2+ Baths</option>
+                                        <option value="3">3+ Baths</option>
+                                        <option value="4">4+ Baths</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="search-field">
+                                <i class="material-icons">tune</i>
+                                <div class="additional-filters">
+                                    <button type="button" class="filter-btn" data-filter="pets">
+                                        <i class="material-icons">pets</i>
+                                        <span>Pet Friendly</span>
+                                    </button>
+                                    <button type="button" class="filter-btn" data-filter="parking">
+                                        <i class="material-icons">local_parking</i>
+                                        <span>Parking</span>
+                                    </button>
+                                    <button type="button" class="filter-btn" data-filter="laundry">
+                                        <i class="material-icons">local_laundry_service</i>
+                                        <span>Laundry</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="material-icons">search</i>
+                            Search Properties
+                        </button>
+                        <div class="search-footer">
+                            <div class="search-stats">
+                                <span><i class="material-icons">home</i> 1,234 Properties</span>
+                                <span><i class="material-icons">update</i> Updated 5 min ago</span>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div id="propertiesGrid" class="row mt-5">
+                <!-- Properties will be displayed here -->
+            </div>
       </div>
     </section>
 
-    <!-- B2B Section -->
-    <section id="b2b" class="py-5">
+    <!-- Testimonials Section -->
+    <section class="testimonial-section">
       <div class="container">
-        <div class="row align-items-center">
-          <div class="col-lg-6">
-            <h2>Power Your Real Estate Business with Salesforce</h2>
-            <p class="lead">Transform your real estate operations with our enterprise-grade solution.</p>
-            <ul class="list-unstyled">
-              <li class="mb-3">Advanced CRM Integration</li>
-              <li class="mb-3">Automated Lead Management</li>
-              <li class="mb-3">Real-time Analytics</li>
-              <li class="mb-3">Custom Workflows</li>
-            </ul>
-            <button class="btn btn-primary btn-lg">Schedule Demo</button>
+            <h2 class="section-title text-white">Success Stories</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <p>"Implementing Salesforce through VerticalRE transformed our real estate operations. We've seen a 40% increase in efficiency and better client satisfaction."</p>
+                        <strong>- John Smith, CEO, Prime Properties</strong>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <p>"The integration of Salesforce into our workflow has revolutionized how we manage properties and interact with clients. Highly recommended!"</p>
+                        <strong>- Sarah Johnson, Director, Urban Realty</strong>
+                    </div>
           </div>
-          <div class="col-lg-6">
-            <div class="ratio ratio-16x9">
-              <iframe src="about:blank" class="rounded" id="demoFrame"></iframe>
+                <div class="col-md-4">
+                    <div class="testimonial-card">
+                        <p>"VerticalRE's Salesforce solutions helped us scale our operations while maintaining excellent client relationships. A game-changer for our business."</p>
+                        <strong>- Michael Chen, Founder, Metro Estates</strong>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Contact Form -->
-    <section id="contact" class="py-5">
+    <!-- Contact Section -->
+    <section id="contact" class="contact-section">
       <div class="container">
+            <h2 class="section-title">Get Started Today</h2>
         <div class="row justify-content-center">
-          <div class="col-lg-6">
-            <h2 class="text-center mb-4">Get in Touch</h2>
-            <form id="contactForm" class="p-4 rounded">
-              <div class="mb-3">
-                <label for="name" class="form-label">Name</label>
-                <input type="text" class="form-control" id="name" required>
+                <div class="col-md-8">
+                    <form id="contactForm" class="search-form">
+                        <div class="search-header">
+                            <div class="salesforce-badge">
+                                <img src="https://www.salesforce.com/content/dam/web/en_us/www/images/logo/salesforce-logo.svg" alt="Salesforce">
+                                <span>Powered by Salesforce</span>
+                            </div>
+                        </div>
+                        <div class="search-fields">
+                            <div class="search-field">
+                                <i class="material-icons">person</i>
+                                <input type="text" class="form-control" id="name" placeholder="Your Name" required>
+                            </div>
+                            <div class="search-field">
+                                <i class="material-icons">email</i>
+                                <input type="email" class="form-control" id="email" placeholder="Your Email" required>
+                            </div>
+                            <div class="search-field">
+                                <i class="material-icons">business</i>
+                                <input type="text" class="form-control" id="company" placeholder="Company Name" required>
+                            </div>
+                            <div class="search-field">
+                                <i class="material-icons">message</i>
+                                <textarea class="form-control" id="message" rows="5" placeholder="Tell us about your real estate business needs" required></textarea>
               </div>
-              <div class="mb-3">
-                <label for="email" class="form-label">Email</label>
-                <input type="email" class="form-control" id="email" required>
               </div>
-              <div class="mb-3">
-                <label for="company" class="form-label">Company</label>
-                <input type="text" class="form-control" id="company">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="material-icons">send</i>
+                            Request Demo
+                        </button>
+                        <div class="search-footer">
+                            <div class="search-stats">
+                                <span><i class="material-icons">verified_user</i> Secure Form</span>
+                                <span><i class="material-icons">schedule</i> Response within 24h</span>
               </div>
-              <div class="mb-3">
-                <label for="message" class="form-label">Message</label>
-                <textarea class="form-control" id="message" rows="4" required></textarea>
               </div>
-              <button type="submit" class="btn btn-primary w-100">Send Message</button>
             </form>
           </div>
         </div>
@@ -162,15 +696,15 @@
     </section>
 
     <!-- Footer -->
-    <footer class="py-4">
+    <footer>
       <div class="container">
         <div class="row">
           <div class="col-md-6">
-            <h5>CLOUDASTICK<span style="color: var(--accent-color);">.</span></h5>
-            <p>Powered by Salesforce</p>
+                    <h4>VerticalRE</h4>
+                    <p>Empowering real estate companies with Salesforce solutions.</p>
           </div>
           <div class="col-md-6 text-md-end">
-            <p>© 2024 Cloudastick. All rights reserved.</p>
+                    <p>© 2024 VerticalRE. All rights reserved.</p>
           </div>
         </div>
       </div>
